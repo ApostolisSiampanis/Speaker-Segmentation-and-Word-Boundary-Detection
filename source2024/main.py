@@ -97,6 +97,31 @@ def train_evaluate_mlp(features_train, features_test, labels_train, labels_test)
     return mlp_clf
 
 
+def apply_median_filter(predictions, kernel_size):
+    """
+    Apply median filter to the predictions.
+    """
+    return scipy.signal.medfilt(predictions, kernel_size=kernel_size)
+
+def predict_audio_class(filepath, classifier, window_size, hop_size, mel_bands):
+    """
+    Predict the class of the audio file using the given classifier.
+    """
+    audio, sample_rate = librosa.load(filepath, sr=None)
+    melspectrogram = extract_features(audio, sample_rate, window_size, hop_size, mel_bands)
+    db_melspectrogram = db_conversion(melspectrogram)
+    plot_spectrogram(db_melspectrogram, sample_rate, hop_size, title=f'Mel-Spectrogram')
+    features = db_melspectrogram.T  # Transpose to shape (frames, n_mels)
+
+    # Predict the class for each frame
+    predictions = classifier.predict(features)
+
+    # Apply median filter to the predictions
+    filtered_predictions = apply_median_filter(predictions, kernel_size=3)
+
+    return filtered_predictions
+
+
 def process_directory(directory):
     """
     Read the files from the directory and extract all the audio files.
@@ -139,3 +164,15 @@ if __name__ == '__main__':
     svm_classifier = train_evaluate_svc(features_train, features_test, labels_train, labels_test)
 
     mlp_classifier = train_evaluate_mlp(features_train, features_test, labels_train, labels_test)
+
+
+
+    new_audio_filepath = "../84-121123-0015.flac"
+
+    # Predict using the SVM classifier
+    svm_predictions = predict_audio_class(new_audio_filepath, svm_classifier, window_size, hop_size, mel_bands)
+    print(f"SVM Predictions: {svm_predictions}")
+
+    # Predict using the MLP classifier
+    mlp_predictions = predict_audio_class(new_audio_filepath, mlp_classifier, window_size, hop_size, mel_bands)
+    print(f"MLP Predictions: {mlp_predictions}")
