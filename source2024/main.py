@@ -13,8 +13,18 @@ from sklearn.model_selection import train_test_split
 window_size = 512  # Window length
 hop_size = 256  # Step size
 mel_bands = 96  # Number of Mel bands (filter bank size)
-offset = 0.5  # Offset in seconds
-duration = 2.0  # Duration in seconds
+
+
+def load_and_preprocess_audio(filepath, window_size, hop_size, mel_bands, offset=None, duration=None):
+    """
+    Loads audio file, extracts mel-spectrogram and converts to dB.
+    """
+    audio, sample_rate = librosa.load(filepath, sr=None, offset=offset, duration=duration)
+    # Extract Features
+    melspectrogram = extract_features(audio, sample_rate, window_size, hop_size, mel_bands)
+    # Convert to dB
+    db_melspectrogram = db_conversion(melspectrogram)
+    return db_melspectrogram
 
 
 def extract_features(audio, sample_rate, window_size, hop_size, mel_bands):
@@ -103,6 +113,7 @@ def apply_median_filter(predictions, kernel_size):
     """
     return scipy.signal.medfilt(predictions, kernel_size=kernel_size)
 
+
 def predict_audio_class(filepath, classifier, window_size, hop_size, mel_bands):
     """
     Predict the class of the audio file using the given classifier.
@@ -133,11 +144,10 @@ def process_directory(directory):
         file_duration = librosa.get_duration(path=filepath)
         if file_duration < 4.0:
             continue
-        audio, sample_rate = librosa.load(filepath, sr=None, offset=offset, duration=duration)
-        # Extract Features
-        melspectrogram = extract_features(audio, sample_rate, window_size, hop_size, mel_bands)
-        # Convert to dB
-        db_melspectrogram = db_conversion(melspectrogram)
+
+        # Load files and find spectrogram
+        db_melspectrogram = load_and_preprocess_audio(filepath, window_size, hop_size, mel_bands, offset=0.5, duration=2.0)
+
         # Label each frame
         frame_labels = label_audio(db_melspectrogram, directory)
         features.append(db_melspectrogram.T)
@@ -146,7 +156,6 @@ def process_directory(directory):
         #plot_spectrogram(db_melspectrogram, sample_rate, hop_size, title=f'Mel-Spectrogram of {filename}')
 
     return np.vstack(features), np.hstack(labels)
-
 
 
 if __name__ == '__main__':
@@ -165,9 +174,7 @@ if __name__ == '__main__':
 
     mlp_classifier = train_evaluate_mlp(features_train, features_test, labels_train, labels_test)
 
-
-
-    new_audio_filepath = "../84-121123-0015.flac"
+    new_audio_filepath = "../1919-142785-0004.flac"
 
     # Predict using the SVM classifier
     svm_predictions = predict_audio_class(new_audio_filepath, svm_classifier, window_size, hop_size, mel_bands)
