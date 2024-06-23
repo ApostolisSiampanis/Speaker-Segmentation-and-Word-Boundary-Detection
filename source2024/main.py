@@ -6,6 +6,7 @@ import numpy as np
 import scipy.signal
 from sklearn.svm import LinearSVC
 from sklearn.neural_network import MLPClassifier
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
 
@@ -67,9 +68,16 @@ def plot_spectrogram(db_melspectrogram, sample_rate, hop_size, title):
     plt.show()
 
 
+def binarize_predictions(predictions, threshold=0.5):
+    """
+    Binarize the predictions based on a given threshold.
+    """
+    return (predictions >= threshold).astype(int)
+
+
 def train_evaluate_svc(features_train, features_test, labels_train, labels_test):
     """
-    Train and evaluate the LinearSVC classifier.
+    Trains and evaluates the LinearSVC classifier.
     """
     svc_clf = LinearSVC()
     svc_clf.fit(features_train, labels_train)
@@ -89,9 +97,9 @@ def train_evaluate_svc(features_train, features_test, labels_train, labels_test)
 
 def train_evaluate_mlp(features_train, features_test, labels_train, labels_test):
     """
-    Train and evaluate the MLP Classifier.
+    Trains and evaluates the MLP Classifier.
     """
-    mlp_clf = MLPClassifier(hidden_layer_sizes=(3,), max_iter=100, random_state=1)
+    mlp_clf = MLPClassifier(hidden_layer_sizes=(512, 256, 128), max_iter=100, random_state=1, early_stopping=True)
     mlp_clf.fit(features_train, labels_train)
 
     # Make predictions on the test set
@@ -99,12 +107,35 @@ def train_evaluate_mlp(features_train, features_test, labels_train, labels_test)
 
     # Evaluate the classifier
     print("MLP Classifier")
+    print(f"Number of features used: {mlp_clf.n_features_in_}")
     accuracy = accuracy_score(labels_test, labels_pred)
     print(f"Accuracy: {accuracy}")
     print("Classification Report:")
     print(classification_report(labels_test, labels_pred))
 
     return mlp_clf
+
+
+def train_evaluate_least_squares(features_train, features_test, labels_train, labels_test):
+    """
+    Trains and evaluates the Least Squares classifier.
+    """
+    least_squares_clf = LinearRegression()
+    least_squares_clf.fit(features_train, labels_train)
+
+    # Make predictions on the test set
+    labels_pred = least_squares_clf.predict(features_test)
+
+    # Binarize the predictions (0 or 1) based on a threshold of 0.5
+    labels_pred_binarized = binarize_predictions(labels_pred, 0.5)
+
+    print("Least Squares Classifier")
+    accuracy = accuracy_score(labels_test, labels_pred_binarized)
+    print(f"Accuracy: {accuracy}")
+    print("Classification Report:")
+    print(classification_report(labels_test, labels_pred_binarized))
+
+    return least_squares_clf
 
 
 def apply_median_filter(predictions, kernel_size):
@@ -127,6 +158,10 @@ def predict_audio_class(filepath, classifier, window_size, hop_size, mel_bands):
     # Predict the class for each frame
     predictions = classifier.predict(features)
 
+    if isinstance(classifier, LinearRegression):
+        # Binarize the predictions (0 or 1) based on a threshold of 0.5
+        predictions = binarize_predictions(predictions)
+
     # Apply median filter to the predictions
     filtered_predictions = apply_median_filter(predictions, kernel_size=3)
 
@@ -146,7 +181,8 @@ def process_directory(directory):
             continue
 
         # Load files and find spectrogram
-        db_melspectrogram = load_and_preprocess_audio(filepath, window_size, hop_size, mel_bands, offset=0.5, duration=2.0)
+        db_melspectrogram = load_and_preprocess_audio(filepath, window_size, hop_size, mel_bands, offset=0.5,
+                                                      duration=2.0)
 
         # Label each frame
         frame_labels = label_audio(db_melspectrogram, directory)
@@ -170,11 +206,12 @@ if __name__ == '__main__':
     # Split features and labels to train and test batches
     features_train, features_test, labels_train, labels_test = train_test_split(features, labels, test_size=0.2)
 
+    # Train and Evaluate the classifiers.
     svm_classifier = train_evaluate_svc(features_train, features_test, labels_train, labels_test)
-
     mlp_classifier = train_evaluate_mlp(features_train, features_test, labels_train, labels_test)
+    least_squares_classifier = train_evaluate_least_squares(features_train, features_test, labels_train, labels_test)
 
-    new_audio_filepath = "../1919-142785-0004.flac"
+    new_audio_filepath = "../1-18527-B-44.wav"
 
     # Predict using the SVM classifier
     svm_predictions = predict_audio_class(new_audio_filepath, svm_classifier, window_size, hop_size, mel_bands)
@@ -183,3 +220,7 @@ if __name__ == '__main__':
     # Predict using the MLP classifier
     mlp_predictions = predict_audio_class(new_audio_filepath, mlp_classifier, window_size, hop_size, mel_bands)
     print(f"MLP Predictions: {mlp_predictions}")
+
+    # Predict using the Least Squares classifier
+    least_squares_predictions = predict_audio_class(new_audio_filepath, least_squares_classifier, window_size, hop_size, mel_bands)
+    print(f"Least Squares Predictions: {least_squares_predictions}")
