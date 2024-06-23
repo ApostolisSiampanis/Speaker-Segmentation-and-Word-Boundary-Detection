@@ -3,6 +3,7 @@ import librosa
 import librosa.display
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.signal
 from sklearn.svm import LinearSVC
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score, classification_report
@@ -55,6 +56,7 @@ def plot_spectrogram(db_melspectrogram, sample_rate, hop_size, title):
     plt.tight_layout()
     plt.show()
 
+
 def train_evaluate_svc(features_train, features_test, labels_train, labels_test):
     """
     Train and evaluate the LinearSVC classifier.
@@ -66,6 +68,7 @@ def train_evaluate_svc(features_train, features_test, labels_train, labels_test)
     labels_pred = svc_clf.predict(features_test)
 
     # Evaluate the classifier
+    print("SVM Classifier")
     accuracy = accuracy_score(labels_test, labels_pred)
     print(f"Accuracy: {accuracy}")
     print("Classification Report:")
@@ -74,6 +77,24 @@ def train_evaluate_svc(features_train, features_test, labels_train, labels_test)
     return svc_clf
 
 
+def train_evaluate_mlp(features_train, features_test, labels_train, labels_test):
+    """
+    Train and evaluate the MLP Classifier.
+    """
+    mlp_clf = MLPClassifier(hidden_layer_sizes=(100,), max_iter=300, random_state=1)
+    mlp_clf.fit(features_train, labels_train)
+
+    # Make predictions on the test set
+    labels_pred = mlp_clf.predict(features_test)
+
+    # Evaluate the classifier
+    print("MLP Classifier")
+    accuracy = accuracy_score(labels_test, labels_pred)
+    print(f"Accuracy: {accuracy}")
+    print("Classification Report:")
+    print(classification_report(labels_test, labels_pred))
+
+    return mlp_clf
 
 
 def process_directory(directory):
@@ -98,7 +119,9 @@ def process_directory(directory):
         labels.append(frame_labels)
         # Plot spectrogram
         #plot_spectrogram(db_melspectrogram, sample_rate, hop_size, title=f'Mel-Spectrogram of {filename}')
+
     return np.vstack(features), np.hstack(labels)
+
 
 
 if __name__ == '__main__':
@@ -106,24 +129,13 @@ if __name__ == '__main__':
     foreground_features, foreground_labels = process_directory("../auxiliary2024/dataset/foreground")
     background_features, background_labels = process_directory("../auxiliary2024/dataset/background")
 
+    # Combine features and labels to the same structures
     features = np.vstack((foreground_features, background_features))
     labels = np.hstack((foreground_labels, background_labels))
 
+    # Split features and labels to train and test batches
     features_train, features_test, labels_train, labels_test = train_test_split(features, labels, test_size=0.2)
 
     svm_classifier = train_evaluate_svc(features_train, features_test, labels_train, labels_test)
 
-
-
-    #predictions = classifier(new_features)
-    #print(f"Predicted Label: {predictions.numpy()}")
-
-#print(melspectrogram.shape)
-
-# Transpose the result to have shape (frames, n_mfcc)
-#melspectrogram = melspectrogram.T
-
-#print(melspectrogram.shape)
-# Print the first frame's MFCC feature vector
-#for i in range(melspectrogram.shape[0]):
-#    print(melspectrogram[i])
+    mlp_classifier = train_evaluate_mlp(features_train, features_test, labels_train, labels_test)
