@@ -81,7 +81,7 @@ def train_evaluate_mlp(features_train, features_test, labels_train, labels_test)
     """
     Train and evaluate the MLP Classifier.
     """
-    mlp_clf = MLPClassifier(hidden_layer_sizes=(100,), max_iter=300, random_state=1)
+    mlp_clf = MLPClassifier(hidden_layer_sizes=(3,), max_iter=100, random_state=1)
     mlp_clf.fit(features_train, labels_train)
 
     # Make predictions on the test set
