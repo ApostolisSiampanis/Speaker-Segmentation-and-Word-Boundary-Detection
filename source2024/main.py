@@ -175,13 +175,16 @@ def predict_audio_labels(filepath, classifier_or_theta, window_size, hop_size, m
     else:
         predictions = predictions.tolist()
 
-        # Apply median filter to the predictions
+    # Apply median filter to the predictions
     filtered_predictions = apply_median_filter(predictions, kernel_size=3)
 
-    return filtered_predictions
+    # Find word Boundaries
+    boundaries = find_word_boundaries(filtered_predictions, hop_size, sample_rate)
+
+    return filtered_predictions, boundaries
 
 
-def find_word_boundaries(predictions):
+def find_word_boundaries(predictions, hop_size, sample_rate):
     """
     Find word boundaries.
     """
@@ -195,7 +198,9 @@ def find_word_boundaries(predictions):
             in_word = True
             word_start = i
         elif in_word and (predictions[i] == 0 or i == len(predictions) - 1):
-            word_boundaries.append((word_start, i))
+            word_start_time = word_start * hop_size / sample_rate
+            word_end_time = i * hop_size / sample_rate
+            word_boundaries.append((word_start_time, word_end_time))
             in_word = False
         i += 1
 
@@ -252,28 +257,20 @@ if __name__ == '__main__':
     new_audio_filepath = "../84-121123-0015.flac"
 
     # Predict using the SVM classifier
-    svm_predictions = predict_audio_labels(new_audio_filepath, svm_classifier, window_size, hop_size, mel_bands)
+    svm_predictions, svm_boundaries = predict_audio_labels(new_audio_filepath, svm_classifier, window_size, hop_size,
+                                                           mel_bands)
     print(f"SVM Predictions: {svm_predictions}")
+    print(f"SVM Word Boundaries (seconds): {svm_boundaries}")
 
     # Predict using the MLP classifier
-    mlp_predictions = predict_audio_labels(new_audio_filepath, mlp_classifier, window_size, hop_size, mel_bands)
+    mlp_predictions, mlp_boundaries = predict_audio_labels(new_audio_filepath, mlp_classifier, window_size, hop_size,
+                                                           mel_bands)
     print(f"MLP Predictions: {mlp_predictions}")
+    print(f"SVM Word Boundaries (seconds): {mlp_boundaries}")
 
     # Predict using the Least Squares classifier
-    least_squares_predictions = predict_audio_labels(new_audio_filepath, least_squares_theta, window_size, hop_size,
-                                                     mel_bands)
+    least_squares_predictions, least_squares_boundaries = predict_audio_labels(new_audio_filepath, least_squares_theta,
+                                                                               window_size, hop_size,
+                                                                               mel_bands)
     print(f"Least Squares Predictions: {least_squares_predictions}")
-
-
-
-    # Find word boundaries for SVM predictions
-    svm_boundaries = find_word_boundaries(svm_predictions)
-    print("SVM Word Boundaries:", svm_boundaries)
-
-    # Find word boundaries for MLP predictions
-    mlp_boundaries = find_word_boundaries(mlp_predictions)
-    print("MLP Word Boundaries:", mlp_boundaries)
-
-    # Find word boundaries for Least Squares predictions
-    ls_boundaries = find_word_boundaries(least_squares_predictions)
-    print("Least Squares Word Boundaries:", ls_boundaries)
+    print(f"SVM Word Boundaries (seconds): {least_squares_boundaries}")
