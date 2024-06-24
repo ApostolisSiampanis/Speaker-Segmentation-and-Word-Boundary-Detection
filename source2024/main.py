@@ -181,6 +181,27 @@ def predict_audio_labels(filepath, classifier_or_theta, window_size, hop_size, m
     return filtered_predictions
 
 
+def find_word_boundaries(predictions):
+    """
+    Find word boundaries.
+    """
+    in_word = False
+    word_start = None
+    word_boundaries = []
+
+    i = 0
+    while i < len(predictions):
+        if predictions[i] == 1 and not in_word:
+            in_word = True
+            word_start = i
+        elif in_word and (predictions[i] == 0 or i == len(predictions) - 1):
+            word_boundaries.append((word_start, i))
+            in_word = False
+        i += 1
+
+    return word_boundaries
+
+
 def process_directory(directory, is_rnn=False):
     """
     Read the files from the directory and extract all the audio files.
@@ -239,5 +260,20 @@ if __name__ == '__main__':
     print(f"MLP Predictions: {mlp_predictions}")
 
     # Predict using the Least Squares classifier
-    least_squares_predictions = predict_audio_labels(new_audio_filepath, least_squares_theta, window_size, hop_size, mel_bands)
+    least_squares_predictions = predict_audio_labels(new_audio_filepath, least_squares_theta, window_size, hop_size,
+                                                     mel_bands)
     print(f"Least Squares Predictions: {least_squares_predictions}")
+
+
+
+    # Find word boundaries for SVM predictions
+    svm_boundaries = find_word_boundaries(svm_predictions)
+    print("SVM Word Boundaries:", svm_boundaries)
+
+    # Find word boundaries for MLP predictions
+    mlp_boundaries = find_word_boundaries(mlp_predictions)
+    print("MLP Word Boundaries:", mlp_boundaries)
+
+    # Find word boundaries for Least Squares predictions
+    ls_boundaries = find_word_boundaries(least_squares_predictions)
+    print("Least Squares Word Boundaries:", ls_boundaries)
