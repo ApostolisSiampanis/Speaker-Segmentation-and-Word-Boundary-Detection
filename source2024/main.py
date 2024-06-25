@@ -79,7 +79,7 @@ def train_evaluate_svm(features_train, features_test, labels_train, labels_test)
     """
     Trains and evaluates the SVM classifier.
     """
-    svm_clf = LinearSVC()
+    svm_clf = LinearSVC(random_state=1)
     svm_clf.fit(features_train, labels_train)
 
     # Make predictions on the test set
@@ -107,7 +107,6 @@ def train_evaluate_mlp(features_train, features_test, labels_train, labels_test)
 
     # Evaluate the classifier
     print("MLP Classifier")
-    print(f"Number of features used: {mlp_clf.n_features_in_}")
     accuracy = accuracy_score(labels_test, labels_pred)
     print(f"Accuracy: {accuracy}")
     print("Classification Report:")
@@ -141,6 +140,41 @@ def train_evaluate_least_squares(features_train, features_test, labels_train, la
     return theta
 
 
+def build_rnn_model(input_shape):
+    """
+    Builds the RNN model.
+    """
+    model = tf.keras.models.Sequential()
+    model.add(tf.keras.Input(shape=input_shape))
+    model.add(tf.keras.layers.SimpleRNN(32, activation='sigmoid', return_sequences=True, seed=1))
+    model.add(tf.keras.layers.Dense(1, activation='sigmoid'))  # For binary classification
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+def train_evaluate_rnn(features_train, features_test, labels_train, labels_test):
+    """
+    Trains and evaluates the RNN model.
+    """
+    # Define input shape based on the training data
+    input_shape = (features_train.shape[1], features_train.shape[2])
+    rnn_model = build_rnn_model(input_shape)
+
+    # Train the model
+    rnn_model.fit(features_train, labels_train, epochs=10, batch_size=32, validation_split=0.2)
+
+    # Evaluate the model
+    labels_pred = rnn_model.predict(features_test)
+    labels_pred_binarized = binarize_predictions(labels_pred, 0.5)
+
+    print("RNN Classifier")
+    #accuracy = accuracy_score(labels_test, labels_pred_binarized)
+    #print(f"Accuracy: {accuracy}")
+    print("Classification Report:")
+    #print(classification_report(labels_test, labels_pred_binarized))
+
+    return rnn_model
+
+
 def apply_median_filter(predictions, kernel_size):
     """
     Apply median filter to the predictions.
@@ -168,6 +202,13 @@ def predict_audio_labels(filepath, classifier_or_theta, window_size, hop_size, m
         # Compute predictions using the provided theta (least squares solution)
         predictions = tf.matmul(features_bias, classifier_or_theta)
         predictions = binarize_predictions(predictions.numpy())
+    elif isinstance(classifier_or_theta, tf.keras.models.Sequential):
+        # Reshape features to fit RNN input shape
+        features = features.reshape(1, -1, mel_bands)
+        # Predict using the RNN model
+        predictions = classifier_or_theta.predict(features)
+        predictions = predictions.flatten()
+        predictions = binarize_predictions(predictions, 0.5)
 
         # Convert predictions to list and flatten if necessary
     if isinstance(predictions, np.ndarray) and predictions.ndim > 1:
@@ -176,7 +217,7 @@ def predict_audio_labels(filepath, classifier_or_theta, window_size, hop_size, m
         predictions = predictions.tolist()
 
     # Apply median filter to the predictions
-    filtered_predictions = apply_median_filter(predictions, kernel_size=3)
+    filtered_predictions = apply_median_filter(predictions, kernel_size=5)
 
     # Find word Boundaries
     boundaries = find_word_boundaries(filtered_predictions, hop_size, sample_rate)
@@ -207,6 +248,13 @@ def find_word_boundaries(predictions, hop_size, sample_rate):
     return word_boundaries
 
 
+def calculate_num_frames(duration, sample_rate, hop_size):
+    """
+    Calculate the number of frames.
+    """
+    return int(np.ceil(duration * sample_rate / hop_size))
+
+
 def process_directory(directory, is_rnn=False):
     """
     Read the files from the directory and extract all the audio files.
@@ -234,7 +282,13 @@ def process_directory(directory, is_rnn=False):
         # Plot spectrogram
         #plot_spectrogram(db_melspectrogram, sample_rate, hop_size, title=f'Mel-Spectrogram of {filename}')
 
-    return np.vstack(features), np.hstack(labels)
+    if is_rnn:
+        num_frames = calculate_num_frames(duration, sample_rate, hop_size)
+        features_reshaped = np.array(features).reshape((-1, num_frames, mel_bands))
+        labels_reshaped = np.array(labels).reshape((-1, num_frames))
+        return features_reshaped, labels_reshaped
+    else:
+        return np.vstack(features), np.hstack(labels)
 
 
 if __name__ == '__main__':
@@ -253,6 +307,25 @@ if __name__ == '__main__':
     svm_classifier = train_evaluate_svm(features_train, features_test, labels_train, labels_test)
     mlp_classifier = train_evaluate_mlp(features_train, features_test, labels_train, labels_test)
     least_squares_theta = train_evaluate_least_squares(features_train, features_test, labels_train, labels_test)
+
+
+
+    # Load files for RNN
+    foreground_features, foreground_labels = process_directory("../auxiliary2024/dataset/foreground", is_rnn=True)
+    background_features, background_labels = process_directory("../auxiliary2024/dataset/background", is_rnn=True)
+
+    # Combine foreground and background data
+    features = np.vstack((foreground_features, background_features))
+    labels = np.vstack((foreground_labels, background_labels))
+
+    # Split features and labels to train and test batches
+    features_train, features_test, labels_train, labels_test = train_test_split(features, labels, test_size=0.2)
+
+    # Train and evaluate RNN
+    rnn_model = train_evaluate_rnn(features_train, features_test, labels_train, labels_test)
+
+
+
 
     new_audio_filepath = "../84-121123-0015.flac"
 
@@ -274,3 +347,11 @@ if __name__ == '__main__':
                                                                                mel_bands)
     print(f"Least Squares Predictions: {least_squares_predictions}")
     print(f"SVM Word Boundaries (seconds): {least_squares_boundaries}")
+
+
+
+    # Predict using the RNN classifier
+    rnn_predictions, rnn_boundaries = predict_audio_labels(new_audio_filepath, rnn_model, window_size, hop_size, mel_bands)
+    print(f"RNN Predictions: {rnn_predictions}")
+    print(f"RNN Word Boundaries (seconds): {rnn_boundaries}")
+
