@@ -25,7 +25,7 @@ def load_and_preprocess_audio(filepath, window_size, hop_size, mel_bands, offset
     melspectrogram = extract_features(audio, sample_rate, window_size, hop_size, mel_bands)
     # Convert to dB
     db_melspectrogram = db_conversion(melspectrogram)
-    return db_melspectrogram
+    return db_melspectrogram, sample_rate
 
 
 def extract_features(audio, sample_rate, window_size, hop_size, mel_bands):
@@ -75,15 +75,15 @@ def binarize_predictions(predictions, threshold=0.5):
     return (predictions >= threshold).astype(int)
 
 
-def train_evaluate_svc(features_train, features_test, labels_train, labels_test):
+def train_evaluate_svm(features_train, features_test, labels_train, labels_test):
     """
-    Trains and evaluates the LinearSVC classifier.
+    Trains and evaluates the SVM classifier.
     """
-    svc_clf = LinearSVC()
-    svc_clf.fit(features_train, labels_train)
+    svm_clf = LinearSVC()
+    svm_clf.fit(features_train, labels_train)
 
     # Make predictions on the test set
-    labels_pred = svc_clf.predict(features_test)
+    labels_pred = svm_clf.predict(features_test)
 
     # Evaluate the classifier
     print("SVM Classifier")
@@ -92,7 +92,7 @@ def train_evaluate_svc(features_train, features_test, labels_train, labels_test)
     print("Classification Report:")
     print(classification_report(labels_test, labels_pred))
 
-    return svc_clf
+    return svm_clf
 
 
 def train_evaluate_mlp(features_train, features_test, labels_train, labels_test):
@@ -224,7 +224,7 @@ def process_directory(directory, is_rnn=False):
             duration = file_duration
 
         # Load files and find spectrogram
-        db_melspectrogram = load_and_preprocess_audio(filepath, window_size, hop_size, mel_bands, offset=0.5,
+        db_melspectrogram, sample_rate = load_and_preprocess_audio(filepath, window_size, hop_size, mel_bands, offset=0.5,
                                                       duration=duration)
 
         # Label each frame
@@ -250,7 +250,7 @@ if __name__ == '__main__':
     features_train, features_test, labels_train, labels_test = train_test_split(features, labels, test_size=0.2)
 
     # Train and Evaluate the classifiers.
-    svm_classifier = train_evaluate_svc(features_train, features_test, labels_train, labels_test)
+    svm_classifier = train_evaluate_svm(features_train, features_test, labels_train, labels_test)
     mlp_classifier = train_evaluate_mlp(features_train, features_test, labels_train, labels_test)
     least_squares_theta = train_evaluate_least_squares(features_train, features_test, labels_train, labels_test)
 
