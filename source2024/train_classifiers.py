@@ -148,13 +148,13 @@ def process_training_directory(directory, is_rnn=False):
         # Plot spectrogram
         #plot_spectrogram(db_melspectrogram, sample_rate, title=f'Mel-Spectrogram of {filename}')
 
-        if is_rnn:
-            num_frames = calculate_num_frames(duration, sample_rate)
-            features_reshaped = np.array(features).reshape((-1, num_frames, 96))  # Frames number, n_mels
-            labels_reshaped = np.array(labels).reshape((-1, num_frames))
-            return features_reshaped, labels_reshaped
-        else:
-            return np.vstack(features), np.hstack(labels)
+    if is_rnn:
+        num_frames = calculate_num_frames(duration, sample_rate)
+        features_reshaped = np.array(features).reshape((-1, num_frames, 96))  # Frames number, n_mels
+        labels_reshaped = np.array(labels).reshape((-1, num_frames))
+        return features_reshaped, labels_reshaped
+    else:
+        return np.vstack(features), np.hstack(labels)
 
 
 def main():

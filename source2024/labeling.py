@@ -84,12 +84,8 @@ def label_test_audio(audio_filepath):
     hop_size = 256  # Step size
     audio, sample_rate = librosa.load(audio_filepath)
     energy, threshold = calculate_energy_and_threshold(audio, window_size, hop_size)
-    #print(f'Energy is {energy}')
-    #print(f'Threshold is {threshold}')
     labels = label_audio_based_on_energy(energy, threshold)
-    print(f'Labels are {labels}')
     labels = apply_median_filter(labels, kernel_size=7)
-    print(f'Labels are {labels}')
 
     # Plot the energy and labels
     plt.figure(figsize=(10, 6))
