@@ -27,6 +27,13 @@ def train_svm_classifier(train_features, train_labels):
     print(f'The SVM classifier has been trained and saved at {path}')
 
 
+def load_svm_classifier(path):
+    """
+    Loads the trained SVM classifier.
+    """
+    return joblib.load(path)
+
+
 def train_mlp_classifier(train_features, train_labels):
     """
     Trains the MLP Classifier.
@@ -42,6 +49,13 @@ def train_mlp_classifier(train_features, train_labels):
     path = os.path.join(project_path, path).replace("\\", "/")
     joblib.dump(mlp_clf, path)
     print(f'The MLP classifier has been trained and saved at {path}')
+
+
+def load_mlp_classifier(path):
+    """
+    Loads the trained MLP classifier.
+    """
+    return joblib.load(path)
 
 
 def train_least_squares_classifier(train_features, train_labels):
@@ -62,6 +76,13 @@ def train_least_squares_classifier(train_features, train_labels):
     path = os.path.join(project_path, path).replace("\\", "/")
     joblib.dump(theta, path)
     print(f'The Least Squares classifier has been trained and saved at {path}')
+
+
+def load_theta_least_squares_classifier(path):
+    """
+    Loads the Least Squares Theta.
+    """
+    return joblib.load(path)
 
 
 def build_rnn_model(input_shape):
@@ -92,6 +113,13 @@ def train_rnn_classifier(train_features, train_labels):
     path = os.path.join(project_path, path).replace("\\", "/")
     rnn_model.save(path)
     print(f'The RNN classifier has been trained and saved at {path}')
+
+
+def load_rnn_model(path):
+    """
+    Loads the RNN model.
+    """
+    return tf.keras.models.load_model(path)
 
 
 def process_training_directory(directory, is_rnn=False):
