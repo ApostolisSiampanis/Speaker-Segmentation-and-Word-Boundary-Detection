@@ -1,6 +1,7 @@
 import os
 from sklearn.metrics import accuracy_score
 
+from source2024.audio_player import play_audio_boundaries
 from source2024.labeling import label_test_audio, predict_audio_labels
 from source2024.train_classifiers import load_svm_classifier, load_mlp_classifier, load_theta_least_squares_classifier, \
     load_rnn_model
@@ -78,6 +79,17 @@ def main():
     rnn_boundaries = find_word_boundaries(rnn_predictions, sample_rate)
     print(f'RNN classification accuracy is {accuracy_score(correct_labels, rnn_predictions)}')
     print(f'RNN boundaries are {rnn_boundaries}')
+
+    # Play the audio with the boundaries
+    print("Playing audio with boundaries...")
+    print("SVM boundaries:")
+    play_audio_boundaries(test_audio_filepath, svm_boundaries)
+    print("MLP boundaries:")
+    play_audio_boundaries(test_audio_filepath, mlp_boundaries)
+    print("Least Squares boundaries:")
+    play_audio_boundaries(test_audio_filepath, least_squares_boundaries)
+    print("RNN boundaries:")
+    play_audio_boundaries(test_audio_filepath, rnn_boundaries)
 
 
 if __name__ == '__main__':
