@@ -33,14 +33,14 @@ def find_word_boundaries(predictions, sample_rate):
 def main():
     while True:
         user_input = input("Please enter an audio file: ")
-        test_audio_filepath = os.path.join("../", user_input)
+        test_audio_filepath = os.path.join("../auxiliary2024/dataset/testing", user_input)
         
         # Check if the file exists
         if os.path.exists(test_audio_filepath):
             break
         else:
             print(f'File "{user_input}" does not exist!')
-    correct_labels = label_test_audio(test_audio_filepath)
+    ground_truth_labels = label_test_audio(test_audio_filepath)
 
     while True:
         print("\nPlease select an option:")
@@ -62,7 +62,7 @@ def main():
 
             # Find word Boundaries
             svm_boundaries = find_word_boundaries(svm_predictions, sample_rate)
-            print(f'SVM classification accuracy is {accuracy_score(correct_labels, svm_predictions)}')
+            print(f'SVM classification accuracy is {accuracy_score(ground_truth_labels, svm_predictions)}')
             print(f'SVM boundaries are {svm_boundaries}')
 
             # Play the audio with the boundaries
@@ -80,7 +80,7 @@ def main():
 
             # Find word Boundaries
             mlp_boundaries = find_word_boundaries(mlp_predictions, sample_rate)
-            print(f'MLP classification accuracy is {accuracy_score(correct_labels, mlp_predictions)}')
+            print(f'MLP classification accuracy is {accuracy_score(ground_truth_labels, mlp_predictions)}')
             print(f'MLP boundaries are {mlp_boundaries}')
 
             # Play the audio with the boundaries
@@ -98,7 +98,7 @@ def main():
 
             # Find word Boundaries
             least_squares_boundaries = find_word_boundaries(least_squares_predictions, sample_rate)
-            print(f'Least Squares classification accuracy is {accuracy_score(correct_labels, least_squares_predictions)}')
+            print(f'Least Squares classification accuracy is {accuracy_score(ground_truth_labels, least_squares_predictions)}')
             print(f'Least Squares boundaries are {least_squares_boundaries}')
 
             # Play the audio with the boundaries
@@ -116,7 +116,7 @@ def main():
 
             # Find word Boundaries
             rnn_boundaries = find_word_boundaries(rnn_predictions, sample_rate)
-            print(f'RNN classification accuracy is {accuracy_score(correct_labels, rnn_predictions)}')
+            print(f'RNN classification accuracy is {accuracy_score(ground_truth_labels, rnn_predictions)}')
             print(f'RNN boundaries are {rnn_boundaries}')
 
             # Play the audio with the boundaries
