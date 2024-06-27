@@ -182,9 +182,13 @@ def main():
 
     # Train classifiers
     print("\nClassifiers training started... This may take some time.")
+    print("\nTraining SVM Classifier...")
     train_svm_classifier(train_features, train_labels)
+    print("\nTraining MLP Classifier...")
     train_mlp_classifier(train_features, train_labels)
+    print("\nTraining Least Squares Classifier...")
     train_least_squares_classifier(train_features, train_labels)
+    print("\nTraining RNN Classifier...")
     train_rnn_classifier(train_rnn_features, train_rnn_labels)
 
 
