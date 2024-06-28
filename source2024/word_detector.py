@@ -2,8 +2,9 @@ import os
 from sklearn.metrics import accuracy_score
 
 from source2024.audio_player import play_audio_boundaries
+from source2024.fundamental_frequency import mean_fundamental_frequency
 from source2024.labeling import label_test_audio, predict_audio_labels
-from source2024.train_classifiers import load_svm_classifier, load_mlp_classifier, load_theta_least_squares_classifier, \
+from source2024.classifiers import load_svm_classifier, load_mlp_classifier, load_theta_least_squares_classifier, \
     load_rnn_model
 
 
