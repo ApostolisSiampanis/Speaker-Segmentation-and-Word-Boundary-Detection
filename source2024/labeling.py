@@ -47,7 +47,7 @@ def predict_audio_labels(filepath, classifier_or_theta):
         features_bias = tf.constant(features_bias, dtype=tf.float32)
         # Compute predictions using the provided theta (least squares solution)
         predictions = tf.matmul(features_bias, classifier_or_theta)
-        predictions = binarize_predictions(predictions.numpy())
+        predictions = binarize_predictions(predictions.numpy(),0.5)
     elif isinstance(classifier_or_theta, tf.keras.models.Sequential):
         # Reshape features to fit RNN input shape
         features = features.reshape(1, -1, 96) # mel_bands = 96
