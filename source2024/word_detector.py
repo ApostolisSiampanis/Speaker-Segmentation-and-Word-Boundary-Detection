@@ -66,14 +66,14 @@ def main():
             print(f'SVM classification accuracy is {accuracy_score(ground_truth_labels, svm_predictions)}')
             print(f'SVM boundaries are {svm_boundaries}')
 
-            # Calculate the mean fundamental frequency of the audio within the boundaries
-            mean_f0s = mean_fundamental_frequency(test_audio_filepath, svm_boundaries)
-            print(f'Mean fundamental frequency of the audio within the boundaries is {mean_f0s}')
-
             # Play the audio with the boundaries
             print("Playing audio with boundaries...")
             print("SVM boundaries:")
             play_audio_boundaries(test_audio_filepath, svm_boundaries)
+
+            # Calculate the mean fundamental frequency of the audio within the boundaries
+            mean_f0s = mean_fundamental_frequency(test_audio_filepath, svm_boundaries)
+            print(f'Mean fundamental frequency of the audio within the boundaries is {round(mean_f0s, 1)} hz')
 
         elif option == "2":
             print("Waiting for MLP predictions...")
@@ -88,14 +88,14 @@ def main():
             print(f'MLP classification accuracy is {accuracy_score(ground_truth_labels, mlp_predictions)}')
             print(f'MLP boundaries are {mlp_boundaries}')
 
-            # Calculate the mean fundamental frequency of the audio within the boundaries
-            mean_f0s = mean_fundamental_frequency(test_audio_filepath, mlp_boundaries)
-            print(f'Mean fundamental frequency of the audio within the boundaries is {mean_f0s}')
-
             # Play the audio with the boundaries
             print("Playing audio with boundaries...")
             print("MLP boundaries:")
             play_audio_boundaries(test_audio_filepath, mlp_boundaries)
+
+            # Calculate the mean fundamental frequency of the audio within the boundaries
+            mean_f0s = mean_fundamental_frequency(test_audio_filepath, mlp_boundaries)
+            print(f'Mean fundamental frequency of the audio within the boundaries is {round(mean_f0s, 1)} hz')
 
         elif option == "3":
             print("Waiting for Least Squares predictions...")
@@ -110,14 +110,14 @@ def main():
             print(f'Least Squares classification accuracy is {accuracy_score(ground_truth_labels, least_squares_predictions)}')
             print(f'Least Squares boundaries are {least_squares_boundaries}')
 
-            # Calculate the mean fundamental frequency of the audio within the boundaries
-            mean_f0s = mean_fundamental_frequency(test_audio_filepath, least_squares_boundaries)
-            print(f'Mean fundamental frequency of the audio within the boundaries is {mean_f0s}')
-
             # Play the audio with the boundaries
             print("Playing audio with boundaries...")
             print("Least Squares boundaries:")
             play_audio_boundaries(test_audio_filepath, least_squares_boundaries)
+
+            # Calculate the mean fundamental frequency of the audio within the boundaries
+            mean_f0s = mean_fundamental_frequency(test_audio_filepath, least_squares_boundaries)
+            print(f'Mean fundamental frequency of the audio within the boundaries is {round(mean_f0s, 1)} hz')
 
         elif option == "4":
             print("Waiting for RNN predictions...")
@@ -129,17 +129,17 @@ def main():
 
             # Find word Boundaries
             rnn_boundaries = find_word_boundaries(rnn_predictions, sample_rate)
-            print(f'RNN classification accuracy is {accuracy_score(ground_truth_labels, rnn_predictions)}')
+            print(f'RNN classification accuracy is {accuracy_score(ground_truth_labels, rnn_predictions)} hz')
             print(f'RNN boundaries are {rnn_boundaries}')
-
-            # Calculate the mean fundamental frequency of the audio within the boundaries
-            mean_f0s = mean_fundamental_frequency(test_audio_filepath, rnn_boundaries)
-            print(f'Mean fundamental frequency of the audio within the boundaries is {mean_f0s}')
 
             # Play the audio with the boundaries
             print("Playing audio with boundaries...")
             print("RNN boundaries:")
             play_audio_boundaries(test_audio_filepath, rnn_boundaries)
+
+            # Calculate the mean fundamental frequency of the audio within the boundaries
+            mean_f0s = mean_fundamental_frequency(test_audio_filepath, rnn_boundaries)
+            print(f'Mean fundamental frequency of the audio within the boundaries is {round(mean_f0s, 1)} hz')
 
         elif option == "5":
             print("Exiting program...")
