@@ -48,6 +48,43 @@ Both datasets are processed to extract features using a sliding window technique
 
 ## Example Output
 
+Upon executing the system, the following steps and visualizations are produced:
+
+1. **Mel-Spectrogram (Optional):**
+
+    If enabled by the user, the system prints the Mel-spectrogram of the input audio file, providing a visual representation of the frequency content over time.
+
+   ![Mel Spectrogram](./images/mel_spectrogram.png)
+
+2. **Energy Function Visualization:**
+
+    The energy function graph is generated to visualize the speech signal’s energy, helping to detect word boundaries based on known test data.
+
+   ![Energy Function Visualization](./images/energy_function.png)
+
+3.  **Test File Insertion:**
+
+    After running the `word_detector.py` script, the user is prompted to insert the test audio file, initiating the word detection process.
+
+    ![Test File Insertion](./images/run_word_detector.png)
+
+4. **Menu Display:**
+
+    Once the test file is inserted, an interactive menu is printed, allowing the user to choose the classifier for the word detection process.
+
+   ![Menu](./images/menu.png)
+
+5. **RNN Classifier and FFmpeg Execution:**
+
+    An example of the RNN classifier running alongside the `ffmpeg` subprocess, where the system processes the audio file and plays back the detected words
+
+   ![RNN Classifier Execution](./images/rnn_classifier_running.png)
+
+6. **Mean Fundamental Frequency Result:**
+
+    The system calculates the mean fundamental frequency of the speaker and displays the result, which can indicate whether the speaker is male or female.
+
+   ![Mean Fundamental Frequency](./images/mean_fundamental_frequency.png)
 
 ## Project Documenation
 
